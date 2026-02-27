@@ -3,22 +3,22 @@
 #include "../Linked_list/linked_list.h"
 
 
-Data_word *new_data_word(void *data, int size, Heap_manager *hm)
+Data_word *new_data_word(void *data, size_t size, Heap_manager *hm)
 {
-    Data_word dw;
+    Data_word *dw = hm->alloc(NULL, sizeof(Data_word), hm->h);
 
-    dw.word = data;
-    dw.size = size;
-    dw.occurrence = 1;
+    if(!dw) return NULL;
 
-    Data_word *pdw = hm->alloc(NULL, sizeof(Data_word), hm->h);
+    char *pstr = hm->alloc(data, size, hm->h);
 
-     if(!pdw) return NULL;
+    dw->word = pstr;
+    dw->size = size;
+    dw->occurrence = 1;
 
-    return pdw;
+    return dw;
 }
 
-Data_word data_word_init(void *data, int size)
+Data_word data_word_init(void *data, size_t size)
 {
     Data_word dw;
 
@@ -29,20 +29,20 @@ Data_word data_word_init(void *data, int size)
     return dw;
 }
 
-int compute_checksum(char *word, int size)
+int compute_checksum(char *word, size_t size)
 {
     int sum = 0; 
     
-    for (int i = 0; i < size; i++) sum += word[i] * (i+1);
+    for (size_t i = 0; i < size; i++) sum += word[i] * (i+1);
     
     return sum;
 }
 
-int add_data_to_list(void *data, int size, Heap_manager *hm, Linked_list_manager *lm)
+int add_data_to_list(void *data, size_t size, Heap_manager *hm, Linked_list_manager *lm)
 {
-    Data_word *dw = (Data_word *)lm->find(data, size, lm->l);
+    Data_word *dw_found = (Data_word *)lm->find(data, size, lm->l);
     
-    if (!dw)
+    if (!dw_found)
     {
         Data_word *new_dw = new_data_word(data, size, hm);
 
@@ -53,7 +53,7 @@ int add_data_to_list(void *data, int size, Heap_manager *hm, Linked_list_manager
         return 0;
     }
     
-    else dw->occurrence++;
+    else dw_found->occurrence++;
 
     return 0;
 }
@@ -76,7 +76,7 @@ Tree_node *new_tree_node(void *data, int size, int checksum, Heap_manager *hm)
     return n;
 }
 
-int add_data_to_tree (void *data, int size, Heap_manager *hm, Data_tree *dt)
+int add_data_word_to_tree (void *data, size_t size, Heap_manager *hm, Data_tree *dt)
 {
     if(!dt) return -1;
 

@@ -29,7 +29,7 @@ typedef struct Data_tree
     Tree_node *root;
     Tree_node *current;
 
-    int (*add_data_to_tree) (void *data, int size, Heap_manager *hm, struct Data_tree *dt);
+    int (*add_data_to_tree) (void *data, size_t size, Heap_manager *hm, struct Data_tree *dt);
 }
 Data_tree;
 
