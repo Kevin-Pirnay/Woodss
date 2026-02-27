@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include "linked_list.h"
 #include "../Heap/heap.h"
+#include "../Data_tree/data_tree.h"
 
 //constructor
 //append
@@ -261,6 +262,34 @@ int remove_at(int index, Linked_list *l)
     return 0;
 }
 
+void *find_data_word(void *data, size_t size, Linked_list *l)
+{
+    if (!data || !l) return NULL;
+
+    Node *current = l->head;
+
+    while (current)
+    {
+        Data_word *dw = (Data_word *)current->data_struct->data;
+
+        if (size == dw->size)
+        {
+            int match = 1;
+
+            for (size_t i = 0; i < size; i++)
+            {
+                if (((char *)data)[i] != dw->word[i]) { match = 0; break; }
+            }
+            
+            if (match) return dw;
+        }
+
+        current = current->next;
+    }
+
+    return NULL;
+}
+
 Linked_list *new_linked_list(Heap_manager *hm)
 {
     Linked_list *l = (Linked_list *)hm->alloc(NULL, sizeof(Linked_list), hm->h);
@@ -287,6 +316,7 @@ Linked_list_manager new_linked_list_manager(Heap_manager *hm)
     lm.append = append;
     lm.print_list = print_list;
     lm.remove_at = remove_at;
+    lm.find = find_data_word;
 
     return lm;
 }

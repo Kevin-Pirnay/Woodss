@@ -6,7 +6,8 @@
 typedef struct
 {
     char *word;
-    int occurence;
+    size_t size;
+    int occurrence;
 }
 Data_word;
 
@@ -16,21 +17,22 @@ typedef struct Tree_node
     struct Tree_node *next_min;
     struct Tree_node *next_maj;
 
-    Linked_list_manager *l;//of Data_word
+    Linked_list_manager lm;//of Data_word
 
     int checksum;
 } 
 Tree_node;
 
 
-typedef struct
+typedef struct Data_tree
 {
-    Tree_node *head;
-    Tree_node *ptr;
+    Tree_node *root;
+    Tree_node *current;
 
-    int (*add_data) (Tree_node *n, Data_tree dt);
+    int (*add_data_to_tree) (void *data, int size, Heap_manager *hm, struct Data_tree *dt);
 }
 Data_tree;
+
 
 //add
 //find
