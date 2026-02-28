@@ -60,7 +60,7 @@ int append_to_the_list(void *data, size_t size, Heap_manager *hm, Linked_list_ma
     return 0;
 }
 
-int if_found_incement_occurence(void *data)
+int if_found_increment_occurence(void *data)
 {
     if(!data) return -1;
 
