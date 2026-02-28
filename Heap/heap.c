@@ -12,9 +12,11 @@ struct Heap
 };
 
 
-void *alloc(void *data, size_t size, Heap *h)
+void *alloc(void *data, size_t size, Heap_manager *hm)
 {
-    if(!h || !h->memory) return NULL;
+    if(!hm || !hm->h || !hm->h->memory) return NULL;
+
+    Heap *h = hm->h;
 
     if (h->ptr + size > h->total_size) return NULL;//ptr is already offset by one
 
@@ -34,11 +36,11 @@ Heap *_new_heap_(size_t size)
 {
     char *m = malloc(size);
 
-    if (!m) { printf("Memory alloation failed for the alount of meemory ask on the heap\n"); return NULL; }
+    if (!m) { printf("Memory allocation failed for the amount of memory ask on the heap\n"); return NULL; }
 
     Heap *h = malloc(sizeof(Heap));
 
-    if(!h) { printf("Memory alloation failed during the storage of heap struct \n"); return NULL; }
+    if(!h) { printf("Memory allocation failed during the storage of heap struct \n"); free(m); return NULL; }
 
     h->memory = m;
     h->total_size = size;
@@ -49,11 +51,9 @@ Heap *_new_heap_(size_t size)
 
 void free_heap(Heap *h)
 {
-    if(!h->memory) return;
+    if(!h ||!h->memory) return;
 
     free(h->memory);
-
-    if(!h) return;
     
     free(h);
 }

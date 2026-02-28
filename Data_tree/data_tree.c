@@ -3,84 +3,92 @@
 #include "../Linked_list/linked_list.h"
 
 
-Data_word *new_data_word(void *data, size_t size, Heap_manager *hm)
+typedef struct Tree_node
 {
-    Data_word *dw = hm->alloc(NULL, sizeof(Data_word), hm->h);
+    struct Tree_node *prev;
+    struct Tree_node *next_min;
+    struct Tree_node *next_maj;
 
-    if(!dw) return NULL;
+    Linked_list_manager lm; //of Data_word
 
-    char *pstr = hm->alloc(data, size, hm->h);
+    int checksum;
+} 
+Tree_node;
 
-    dw->word = pstr;
-    dw->size = size;
-    dw->occurrence = 1;
+struct Data_tree
+{
+    Tree_node *root;
+};
 
-    return dw;
+int add_data_to_node(void *data, size_t size, Heap_manager *hm, Linked_list_manager *lm, Data_type_tree_handler *dtth)
+{
+    if(!data || !hm || !lm || !lm->l) return -1;
+
+    void *data_found = lm->find_data(data, size, dtth->compare, lm);
+    
+    if (!data_found) return dtth->append_to_the_list(data, size, hm, lm);
+    
+    else return dtth->if_found(data_found);
 }
 
-Data_word data_word_init(void *data, size_t size)
-{
-    Data_word dw;
-
-    dw.word = data;
-    dw.size = size;
-    dw.occurrence = 1;
-
-    return dw;
-}
-
-int compute_checksum(char *word, size_t size)
-{
-    int sum = 0; 
-    
-    for (size_t i = 0; i < size; i++) sum += word[i] * (i+1);
-    
-    return sum;
-}
-
-int add_data_to_list(void *data, size_t size, Heap_manager *hm, Linked_list_manager *lm)
-{
-    Data_word *dw_found = (Data_word *)lm->find(data, size, lm->l);
-    
-    if (!dw_found)
-    {
-        Data_word *new_dw = new_data_word(data, size, hm);
-
-        if(!new_dw) return -1;
-
-        lm->append(new_dw, sizeof(Data_word), DATA_WORD, hm, lm->l);
-        
-        return 0;
-    }
-    
-    else dw_found->occurrence++;
-
-    return 0;
-}
 
 Tree_node *new_tree_node(void *data, int size, int checksum, Heap_manager *hm)
 {
     Tree_node *n = hm->alloc(NULL, sizeof(Tree_node), hm->h);
 
+    if(!n) return NULL;
+
     n->prev = NULL;
     n->next_min = NULL;
     n->next_maj = NULL;
 
-    n->lm  = new_linked_list_manager(hm);
+    int err = 0;
+    n->lm  = new_linked_list_manager(hm, &err);
 
-    Data_word dw = data_word_init(data, size);
-    n->lm.append(&dw, sizeof(Data_word), DATA_WORD, hm, n->lm.l);
+    if(err) return NULL;
 
     n->checksum = checksum;
 
     return n;
 }
 
-int add_data_word_to_tree (void *data, size_t size, Heap_manager *hm, Data_tree *dt)
+Tree_node *create_new_node(
+    void *data, 
+    size_t size, 
+    int checksum, 
+    Tree_node *previous, 
+    Heap_manager *hm, 
+    Data_tree *dt,
+    Data_type_tree_handler*dtth)
 {
-    if(!dt) return -1;
+    if(!hm || !dt) return NULL;
 
-    int checksum = compute_checksum((char *)data, size);
+    Tree_node *n = new_tree_node(data, size, checksum ,hm); if(!n) return NULL;
+
+    int err = add_data_to_node(data, size, hm, &n->lm, dtth); if(err) return NULL;
+
+    if (!previous) dt->root = n; //this is the root node
+
+    else
+    {
+        n->prev = previous;
+    
+        if(checksum < previous->checksum) previous->next_min = n;
+    
+        else previous->next_maj = n;
+    }
+
+    return n;
+}
+
+int add_data_to_tree (void *data, size_t size, Heap_manager *hm, Data_tree_manager *dtm)
+{
+    if(!dtm || !dtm->dt) return -1;
+
+    Data_tree *dt = dtm->dt;
+    Data_type_tree_handler *dtth = &dtm->dtth;
+
+    int checksum = dtth->compute_checksum(data, size);
 
     Tree_node *current = dt->root;//if there is no root then the code will automatically create a new node
     Tree_node *prev = NULL;
@@ -96,20 +104,18 @@ int add_data_word_to_tree (void *data, size_t size, Heap_manager *hm, Data_tree 
         else if (checksum == current->checksum) break;
     }
 
-    if (current) add_data_to_list(data, size, hm, &current->lm);
+    if (current) return add_data_to_node(data, size, hm, &current->lm, dtth);
 
     else 
     {
-        Tree_node *tn = new_tree_node(data, size, checksum, hm);
+        Tree_node *tn = create_new_node(data, size, checksum, prev, hm, dt, dtth);
 
-        if (!prev) { dt->root = tn; return 0; }//this is the root node
-
-        tn->prev = prev;
-
-        if(checksum < current->checksum) prev->next_min = tn;
-
-        else prev->next_maj = tn;
+        if (!tn) return -2;
     }
 
     return 0;
 }
+
+
+//add data
+//find

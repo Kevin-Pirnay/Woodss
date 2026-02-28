@@ -1,5 +1,4 @@
 #include "stdio.h"
-#include "linked_list.h"
 #include "../Heap/heap.h"
 #include "../Data_tree/data_tree.h"
 
@@ -162,9 +161,11 @@ int append_at_end_pos(Linked_list *l, Node *n)
     return 0;
 }
 
-int append_at(void *d, size_t s, Data_type t, Heap_manager *hm, int index, Linked_list *l)
+int append_at(void *d, size_t s, Data_type t, Heap_manager *hm, int index, Linked_list_manager *lm)
 {
-    if (!l || index > l->count || index < 0) return -1;
+    if (!lm || !lm->l || index > lm->l->count || index < 0) return -1;
+
+    Linked_list *l = lm->l;
 
     Node *n = l->create_new_node(d, s, t, hm); if (!n) { printf("memory allocation error to store node\n"); return -2; }
     
@@ -181,13 +182,15 @@ int append_at(void *d, size_t s, Data_type t, Heap_manager *hm, int index, Linke
     return 0;
 }
 
-int append(void *d, size_t s, Data_type t, Heap_manager *hm, Linked_list *l)
+int append(void *d, size_t s, Data_type t, Heap_manager *hm, Linked_list_manager *lm)
 {
+    if(!hm || !lm || !lm->l) return -1;
+
     int e = 0;
 
-    if (l->count == 0) e = append_at(d,s,t,hm,0,l);
+    if (lm->l->count == 0) e = append_at(d,s,t,hm,0,lm);
    
-    else e = append_at(d,s,t,hm,l->count,l);
+    else e = append_at(d,s,t,hm,lm->l->count,lm);
 
     return e;
 }
@@ -205,9 +208,11 @@ int print_data_struct(Data_struct *d)
     return 0;
 }
 
-int print_list(Linked_list *l)
+int print_list(Linked_list_manager *lm)
 {
-    if(!l || !l->head || !l->head->data_struct) return -1;
+    if(!lm || !lm->l || !lm->l->head || !lm->l->head->data_struct) return -1;
+
+    Linked_list *l = lm->l;
 
     Node *current = l->head;
 
@@ -229,9 +234,11 @@ int print_list(Linked_list *l)
     return 0;
 }
 
-int remove_at(int index, Linked_list *l)
+int remove_at(int index, Linked_list_manager *lm)
 {
-    if (!l || index < 0 || index >= l->count) return -1;
+    if (!lm || !lm->l || index < 0 || index >= lm->l->count) return -1;
+
+    Linked_list *l = lm->l;
 
     if(l->count == 0) return -2;
     
@@ -262,27 +269,21 @@ int remove_at(int index, Linked_list *l)
     return 0;
 }
 
-void *find_data_word(void *data, size_t size, Linked_list *l)
+void *find_data(void *data, size_t size, Linked_list_manager *lm, int (*compare)(void *data, size_t size, void *to_compare))
 {
-    if (!data || !l) return NULL;
+    if (!data || !lm || !lm->l) return NULL;
+
+    Linked_list *l = lm->l;
 
     Node *current = l->head;
 
     while (current)
     {
-        Data_word *dw = (Data_word *)current->data_struct->data;
+        void *to_compare = current->data_struct->data;
 
-        if (size == dw->size)
-        {
-            int match = 1;
+        int r = compare(data, size, to_compare);
 
-            for (size_t i = 0; i < size; i++)
-            {
-                if (((char *)data)[i] != dw->word[i]) { match = 0; break; }
-            }
-            
-            if (match) return dw;
-        }
+        if(r) return to_compare;
 
         current = current->next;
     }
@@ -292,6 +293,8 @@ void *find_data_word(void *data, size_t size, Linked_list *l)
 
 Linked_list *new_linked_list(Heap_manager *hm)
 {
+    if(!hm) return NULL;
+
     Linked_list *l = (Linked_list *)hm->alloc(NULL, sizeof(Linked_list), hm->h);
 
     if(!l) { printf("failed to allocate memory to store linked_list"); return NULL; }
@@ -306,17 +309,19 @@ Linked_list *new_linked_list(Heap_manager *hm)
     return l;
 }
 
-Linked_list_manager new_linked_list_manager(Heap_manager *hm)
-{
+Linked_list_manager new_linked_list_manager(Heap_manager *hm, int *err)
+{    
     Linked_list_manager lm;
 
     lm.l = new_linked_list(hm);
+
+    if (!lm.l) *err = -1;
     
     lm.append_at = append_at;
     lm.append = append;
     lm.print_list = print_list;
     lm.remove_at = remove_at;
-    lm.find = find_data_word;
+    lm.find_data = find_data;
 
     return lm;
 }

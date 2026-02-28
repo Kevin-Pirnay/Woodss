@@ -8,7 +8,7 @@ typedef struct Heap_manager
 {
     Heap *h;
     
-    void *(*alloc) (void *data, size_t size, struct Heap *h);
+    void *(*alloc) (void *data, size_t size, struct Heap_manager *hm);
 }
 Heap_manager;
 
