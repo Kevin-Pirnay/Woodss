@@ -34,7 +34,7 @@ int add_data_to_node(void *data, size_t size, Heap_manager *hm, Linked_list_mana
 
 Tree_node *new_tree_node(void *data, int size, int checksum, Heap_manager *hm)
 {
-    Tree_node *n = hm->alloc(NULL, sizeof(Tree_node), hm->h);
+    Tree_node *n = hm->alloc(NULL, sizeof(Tree_node), hm);
 
     if(!n) return NULL;
 
@@ -52,7 +52,7 @@ Tree_node *new_tree_node(void *data, int size, int checksum, Heap_manager *hm)
     return n;
 }
 
-Tree_node *create_new_node(
+Tree_node *create_new_tree_node(
     void *data, 
     size_t size, 
     int checksum, 
@@ -108,7 +108,7 @@ int add_data_to_tree (void *data, size_t size, Heap_manager *hm, Data_tree_manag
 
     else 
     {
-        Tree_node *tn = create_new_node(data, size, checksum, prev, hm, dt, dtth);
+        Tree_node *tn = create_new_tree_node(data, size, checksum, prev, hm, dt, dtth);
 
         if (!tn) return -2;
     }

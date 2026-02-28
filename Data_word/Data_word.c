@@ -1,22 +1,23 @@
-#include "stddef.h"
-
+#include "data_word.h"
 #include "../Data_tree/data_tree.h"
 
-typedef struct
+#include "stddef.h"
+
+
+struct Data_word
 {
     char *word;
     size_t size;
     int occurrence;
-}
-Data_word;
+};
 
 Data_word init_data_word(void *data, size_t size, Heap_manager *hm, int *err)
 {
-    if (!data || !hm) *err = -1;
+    Data_word dw = {0};
 
-    Data_word dw;
+    if (!data || !hm || err) { *err = -1; return dw;}
 
-    dw.word = hm->alloc(data, size, hm->h); if (!dw.word) *err = -2;
+    dw.word = hm->alloc(data, size, hm); if (!dw.word) *err = -2;
 
     dw.size = size;
 
@@ -25,7 +26,7 @@ Data_word init_data_word(void *data, size_t size, Heap_manager *hm, int *err)
     return dw;
 }
 
-int *compare(void *data, size_t size, void *to_compare)
+int compare(void *data, size_t size, void *to_compare)
 {
     Data_word *dw = (Data_word *) to_compare;
 
@@ -52,7 +53,7 @@ int append_to_the_list(void *data, size_t size, Heap_manager *hm, Linked_list_ma
 
     if(err) return -1;
 
-    err = lm->append(&new_dw, sizeof(Data_word), DATA_WORD, hm, lm->l); 
+    err = lm->append(&new_dw, sizeof(Data_word), DATA_WORD, hm, lm); 
     
     if(err) return -2;
 

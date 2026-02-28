@@ -37,11 +37,11 @@ struct Linked_list
 
 Data_struct *store_data_struct(Data_struct *d, Heap_manager *hm)
 {
-    void *ds = hm->alloc(d->data, d->size, hm->h); if(!ds) return NULL;
+    void *ds = hm->alloc(d->data, d->size, hm); if(!ds) return NULL;
 
     d->data = ds;
 
-    void *r = hm->alloc(d, sizeof(Data_struct), hm->h);
+    void *r = hm->alloc(d, sizeof(Data_struct), hm);
 
     if (!r) return NULL;
 
@@ -70,7 +70,7 @@ Node *new_node(Data_struct *d, Heap_manager *hm)
     n.next = NULL;
     n.data_struct = d;
      
-    return (Node *) hm->alloc(&n, sizeof(Node),hm->h);
+    return (Node *) hm->alloc(&n, sizeof(Node),hm);
 }
 
 Node *create_new_node(void *data, size_t size, Data_type t, Heap_manager *hm)
@@ -269,7 +269,7 @@ int remove_at(int index, Linked_list_manager *lm)
     return 0;
 }
 
-void *find_data(void *data, size_t size, Linked_list_manager *lm, int (*compare)(void *data, size_t size, void *to_compare))
+void *find_data(void *data, size_t size, int (*compare)(void *data, size_t size, void *to_compare), Linked_list_manager *lm)
 {
     if (!data || !lm || !lm->l) return NULL;
 
@@ -295,7 +295,7 @@ Linked_list *new_linked_list(Heap_manager *hm)
 {
     if(!hm) return NULL;
 
-    Linked_list *l = (Linked_list *)hm->alloc(NULL, sizeof(Linked_list), hm->h);
+    Linked_list *l = (Linked_list *)hm->alloc(NULL, sizeof(Linked_list), hm);
 
     if(!l) { printf("failed to allocate memory to store linked_list"); return NULL; }
 
