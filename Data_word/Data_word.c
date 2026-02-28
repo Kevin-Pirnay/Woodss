@@ -4,12 +4,13 @@
 #include "stddef.h"
 
 
-struct Data_word
+typedef struct
 {
     char *word;
     size_t size;
     int occurrence;
-};
+}
+Data_word;
 
 Data_word init_data_word(void *data, size_t size, Heap_manager *hm, int *err)
 {
